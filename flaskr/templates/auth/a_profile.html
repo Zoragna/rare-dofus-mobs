@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}{{ user["username"] }}'s profile{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <p>{{ user["username"] }}</p>
+  <p>{{ user["metamob"] }}</p>
+{% endblock %}

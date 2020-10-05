@@ -1,0 +1,77 @@
+<!doctype html>
+<title>{% block title %}{% endblock %} - rare dofus mobs</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<nav>
+  <h1>Rare Dofus Mobs</h1>
+  <ul>
+    {% if g.user %}
+      <li><span>{{ g.user['username'] }}</span>
+      <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
+    {% else %}
+      <li><a href="{{ url_for('auth.register') }}">Register</a>
+      <li><a href="{{ url_for('auth.login') }}">Log In</a>
+    {% endif %}
+  </ul>
+</nav>
+<section class="content">
+  <header>
+    {% block header %}{% endblock %}
+  </header>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</section>
+<section class="scripts">
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="{{
+    url_for('static', filename='jquery-3.5.1.min.js') }}">\x3C/script>')</script>
+  <script type=text/javascript>
+    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+  </script>
+  <script type=text/javascript src="{{
+    url_for('static', filename='js/main.js') }}"></script>
+
+<script type="text/javascript">
+    var frm = $('#new-capture-form');
+    frm.submit(function (e) {
+        e.preventDefault();
+        $.ajax({
+            type: frm.attr('method'),
+            url: frm.attr('action'),
+            data: frm.serialize(),
+            success: function (data) {
+                console.log(data);
+		$('#result').html("Success !");
+            },
+            error: function (data) {
+                console.log(data);
+		$('#result').html(data.responseJSON.message);
+            },
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    $('.btn-valid').click(function (e) {
+        e.preventDefault();
+        var button = $(this);
+        $.ajax({
+            type: "POST",
+            url: "/capture/" + button.attr('c_id'),
+            data: JSON.stringify({ "value": button.attr('v') }),
+	    contentType: "application/json",
+            success: function (data) {
+                console.log(data);
+		button.parent().children(".valid-up").children("b").html(data.thumbs_up);
+		button.parent().children(".valid-down").children("b").html(data.thumbs_down);
+            },
+            error: function (data) {
+                console.log(data);
+            },
+        });
+    });
+</script>
+
+
+</section>
