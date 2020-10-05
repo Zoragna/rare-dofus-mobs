@@ -1,11 +1,11 @@
-DROP TABLE IF EXISTS user;
+DROP TABLE IF EXISTS account;
 DROP TABLE IF EXISTS capture;
 DROP TABLE IF EXISTS captureNote;
 DROP TABLE IF EXISTS monster;
 DROP TABLE IF EXISTS monsterType;
 
-CREATE TABLE user (
-  id 		INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE account (
+  id 		SERIAL	PRIMARY KEY,
   username 	TEXT 	UNIQUE NOT NULL,
   password 	TEXT 	NOT NULL,
   metamob 	TEXT	DEFAULT '',
@@ -13,7 +13,7 @@ CREATE TABLE user (
 );
 
 CREATE TABLE monster (
-  id 		INTEGER PRIMARY KEY AUTOINCREMENT,
+  id 		SERIAL	PRIMARY KEY,
   nameFr 	TEXT 	NOT NULL,
   img 		TEXT	DEFAULT '',
   zoneId 	INTEGER NOT NULL,
@@ -32,21 +32,21 @@ INSERT INTO monsterType VALUES ('notice',2,6,18);
 INSERT INTO monsterType VALUES ('cania-bandit',3,3,9);
 
 CREATE TABLE capture (
-  id            INTEGER         PRIMARY KEY AUTOINCREMENT,
+  id            SERIAL 	        PRIMARY KEY,
   monsterId     INTEGER         NOT NULL,
   captured      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   userId        INTEGER         NOT NULL,
   proof         TEXT            DEFAULT '',
   FOREIGN KEY   (monsterId)     REFERENCES      monster(id),
-  FOREIGN KEY   (userId)        REFERENCES      user(id)
+  FOREIGN KEY   (userId)        REFERENCES      account(id)
 );
 
 CREATE TABLE captureNote (
-  id		INTEGER		PRIMARY KEY AUTOINCREMENT,
+  id		SERIAL		PRIMARY KEY,
   captureId	INTEGER		NOT NULL,
   userId	INTEGER		NOT NULL,
   value		INTEGER		NOT NULL DEFAULT 0,
   FOREIGN KEY	(captureId)	REFERENCES	capture(id),
-  FOREIGN KEY	(userId)	REFERENCES	user(id)
+  FOREIGN KEY	(userId)	REFERENCES	account(id)
 );
 

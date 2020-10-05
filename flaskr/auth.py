@@ -26,9 +26,12 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        g.user = get_db().execute(
-            'SELECT * FROM user WHERE id = ?', (user_id,)
-        ).fetchone()
+        cursor = get_db().cursor()
+        cursor.execute(
+            'SELECT id, username, metamob FROM account WHERE id = %s', (user_id,)
+        )
+        user = cursor.fetchone()
+        g.user = { "id" : user[0], "username" : user[1], "metamob" : user[2] }
 
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
@@ -37,6 +40,7 @@ def register():
         password = request.form['password']
         metamob = request.form['metamob']
         db = get_db()
+        cursor = db.cursor()
         error = None
 
         if not username:
@@ -47,18 +51,20 @@ def register():
             error = 'Password is required.'
         elif len(password) < 6 or len(password) > 100:
             error = 'Password should be between 6 and 99 characters.'
-        if db.execute(
-            'SELECT id FROM user WHERE username = ?', (username,)
-        ).fetchone() is not None:
+        cursor.execute(
+            'SELECT id FROM account WHERE username = %s', (username,)
+        )
+        if cursor.fetchone() is not None:
             error = 'User {} is already registered.'.format(username)
 
         # ex. www.metamob.fr/utilisateur/profil/Koolskaa
+        # TODO : check page exists | user is registered
         if len(metamob) > 0 and not "metamob.fr/utilisateur/profil" in metamob :
             error = 'Invalid metamob profile URL.'
 
         if error is None:
-            db.execute(
-                'INSERT INTO user (username, password,metamob) VALUES (?, ?, ?)',
+            cursor.execute(
+                'INSERT INTO account (username, password,metamob) VALUES (%s, %s, %s)',
                 (username, generate_password_hash(password), metamob)
             )
             db.commit()
@@ -74,19 +80,21 @@ def login():
         username = request.form['username']
         password = request.form['password']
         db = get_db()
+        cursor = db.cursor()
         error = None
-        user = db.execute(
-            'SELECT * FROM user WHERE username = ?', (username,)
-        ).fetchone()
+        cursor.execute(
+            'SELECT id, username, metamob, password FROM account WHERE username = %s', (username,)
+        )
+        user = cursor.fetchone()
 
         if user is None:
             error = 'Incorrect username.'
-        elif not check_password_hash(user['password'], password):
+        elif not check_password_hash(user[3], password):
             error = 'Incorrect password.'
 
         if error is None:
             session.clear()
-            session['user_id'] = user['id']
+            session['user_id'] = user[0]
             return redirect(url_for('index'))
 
         flash(error)
@@ -100,10 +108,14 @@ def profile(username=None):
     if username is None:
         return render_template('auth/my_profile.html')	
     else:
-        user = get_db().execute(
-            'SELECT username, metamob FROM user'
-            ' WHERE username=?', (username,)).fetchone()
-        return render_template('auth/a_profile.html', profile=user)
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute(
+            'SELECT username, metamob FROM account'
+            ' WHERE username=%s', (username,))
+        user = cursor.fetchone()
+        profile = { "username":user[0], "metamob":user[1] }
+        return render_template('auth/a_profile.html', profile=profile)
 
 @bp.route('/logout')
 def logout():

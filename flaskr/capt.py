@@ -12,27 +12,35 @@ from flaskr.auth import login_required
 bp = Blueprint('capt', __name__)
 
 def get_captures_today():
-    db = get_db()
-    capt_db = db.execute(
+    cursor = get_db().cursor()
+    cursor.execute(
         'SELECT id, monsterId, captured, userId, proof'
         ' FROM capture ORDER BY captured DESC'
         ' LIMIT 5'
-    ).fetchall()
+    )
+    capt_db = cursor.fetchall()
     captures = []
     for capt in capt_db:
-        monster = db.execute('SELECT id, nameFr FROM monster'
-                             ' WHERE id='+str(capt["monsterId"])).fetchone()
-        user = db.execute('SELECT id, username FROM user'
-                          ' WHERE id='+str(capt["userId"])).fetchone()
-        thumbs_up = db.execute('SELECT * FROM captureNote'
-                               ' WHERE captureId=? AND value>0', (capt["id"],)).fetchall()
-        thumbs_down = db.execute('SELECT * FROM captureNote'
-                               ' WHERE captureId=? AND value<0', (capt["id"],)).fetchall()
-        captures.append( {"id":capt["id"],
-                          "monster":monster["nameFr"], 
-                          "hunter":user["username"], 
-                          "proof":capt["proof"],
-                          "time":capt["captured"].strftime("%d %b %Y %Hh%M"),
+        c_id = capt[0]
+        m_id = capt[1]
+        u_id = capt[3]
+        cursor.execute('SELECT id, nameFr FROM monster'
+                             ' WHERE id=%s', (m_id,))
+        monster = cursor.fetchone()
+        cursor.execute('SELECT id, username FROM account'
+                          ' WHERE id=%s', (u_id,))
+        user = cursor.fetchone()
+        cursor.execute('SELECT * FROM captureNote'
+                            ' WHERE captureId=%s AND value>0', (c_id,))
+        thumbs_up = cursor.fetchall()
+        cursor.execute('SELECT * FROM captureNote'
+                               ' WHERE captureId=%s AND value<0', (c_id,))
+        thumbs_down = cursor.fetchall()
+        captures.append( {"id":capt[0],
+                          "monster":monster[1], 
+                          "hunter":user[1], 
+                          "proof":capt[2],
+                          "time":capt[2].strftime("%d %b %Y %Hh%M"),
                           "+":len(thumbs_up),
                           "-":len(thumbs_down)
         } )
@@ -49,22 +57,25 @@ def get_notices():
 
 def get_monsters(m_type=0):
     db = get_db()
-    mons_db = db.execute(
+    cursor = db.cursor()
+    cursor.execute(
         'SELECT id, nameFr, img, zoneId, monsterType'
-        ' FROM monster WHERE monsterType='+str(m_type)
-    ).fetchall()
+        ' FROM monster WHERE monsterType=%s', (m_type,)
+    )
+    mons_db = cursor.fetchall()
     now = datetime.now()
     monsters = []
     for mons in mons_db:
-        m = db.execute(
+        cursor.execute(
             'SELECT id, captured '
-            'FROM capture WHERE monsterId='+str(mons["id"])
-        ).fetchone()
-        monster = { "nameFr" : mons["nameFr"], "id":mons["id"]  }
+            'FROM capture WHERE monsterId=%s', (mons[0],)
+        )
+        m = cursor.fetchone()
+        monster = { "nameFr" : mons[1], "id":mons[0]  }
         if m is None:
             monster["last capture"] = "Never recorded."
         else:
-            s = (now-m["captured"]).total_seconds()
+            s = (now-m[1]).total_seconds()
             hours, remainder = divmod(s, 3600)
             minutes, seconds = divmod(remainder, 60)
             monster["last capture"] = str(hours)+" hours "+str(minutes)+" minutes ago"
@@ -79,11 +90,14 @@ def index():
 @bp.route('/capture/<c_id>', methods=("POST",))
 @login_required
 def assess_capture(c_id=None):
+    db = get_db()
+    cursor = db.cursor()
     # TODO : try and use abort() instead of those two lines things
     if c_id is None:
         data = {'message': 'No capture ID provided', 'code': 'FAILURE'}
         return make_response(jsonify(data), 400)
-    capture = get_db().execute('SELECT id FROM capture WHERE id=?', (c_id,)).fetchone()
+    cursor.execute('SELECT id FROM capture WHERE id=%s', (c_id,))
+    capture = cursor.fetchone()
     if capture is None:
         data = {'message': 'Capture ID not in database', 'code': 'FAILURE'}
         return make_response(jsonify(data), 400)
@@ -96,29 +110,31 @@ def assess_capture(c_id=None):
     elif request.json['value'] == "-":
         value = -1
     print(request.json, "value=", value) 
-    note = get_db().execute('SELECT id,value FROM captureNote'
-                            ' WHERE captureId=? AND userId=?', (c_id,g.user["id"])).fetchone()
-    if not note is None and note["value"]*value >= 0 :
-        print("note value",note["value"])
+    cursor.execute('SELECT id,value FROM captureNote'
+                            ' WHERE captureId=%s AND userId=%s', (c_id,g.user["id"]))
+    note = cursor.fetchone()
+    if not note is None and note[1]*value >= 0 :
+        print("note value",note[1])
         data = {'message': 'User already assessed this capture.', 'code': 'FAILURE'}
         return make_response(jsonify(data), 400)
 
-    db = get_db()
     if note is None :
-        db.execute('INSERT INTO captureNote(captureId, userId, value) VALUES (?,?,?)',
+        cursor.execute('INSERT INTO captureNote(captureId, userId, value) VALUES (%s,%s,%s)',
                (c_id, g.user['id'],value))
     else:
-        db.execute('UPDATE captureNote SET value = ?'
-                   ' WHERE id = ?', (value, note["id"]))
+        cursor.execute('UPDATE captureNote SET value = %s'
+                   ' WHERE id = %s', (value, note[0]))
     db.commit()
-    thumbs_up = get_db().execute('SELECT id,value FROM captureNote'
-                                 ' WHERE captureId=? AND value>0', (c_id,)
-                ).fetchall()
+    cursor.execute('SELECT id,value FROM captureNote'
+                                 ' WHERE captureId=%s AND value>0', (c_id,)
+                )
+    thumbs_up = cursor.fetchall()
     if thumbs_up is None:
         thumbs_up = []
-    thumbs_down = get_db().execute('SELECT id,value FROM captureNote'
-                                 ' WHERE captureId=? AND value<0', (c_id,)
-                ).fetchall()
+    cursor.execute('SELECT id,value FROM captureNote'
+                                 ' WHERE captureId=%s AND value<0', (c_id,)
+                )
+    thumbs_down = cursor.fetchall()
     if thumbs_down is None:
         thumbs_down = []
     data = {'thumbs_up':len(thumbs_up), 'thumbs_down':len(thumbs_down),
@@ -136,12 +152,14 @@ def create_capture():
 
     capture_date = datetime.strptime(date+" "+time, "%Y-%m-%d %H:%M")
 
-    monster = get_db().execute(
+    cursor = get_db().cursor()
+    cursor.execute(
         'SELECT id'
         ' FROM monster'
-        ' WHERE id = ?',
+        ' WHERE id = %s',
         (m_id,)
-    ).fetchone()
+    )
+    monster = cursor.fetchone()
 
     now = datetime.now()
 
@@ -160,10 +178,10 @@ def create_capture():
     else:
     # TODO : test if monster could have been captured
         db = get_db()
-        db.execute(
+        db.cursor().execute(
            'INSERT INTO capture (monsterId, captured, userId, proof)'
-           ' VALUES (?, ?, ?, ?)',
-           (monster['id'], capture_date, g.user['id'], proof)
+           ' VALUES (%s, %s, %s, %s)',
+           (monster[0], capture_date, g.user['id'], proof)
         )
         db.commit()
         data = {'message': 'Created', 'code': 'SUCCESS'}

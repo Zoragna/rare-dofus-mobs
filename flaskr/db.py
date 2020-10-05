@@ -1,8 +1,8 @@
-import sqlite3
 import click
 import requests
 import time
 import os
+import psycopg2
 
 from flask import current_app, g
 from flask.cli import with_appcontext
@@ -11,11 +11,7 @@ from bs4 import BeautifulSoup
 
 def get_db():
     if 'db' not in g:
-        g.db = sqlite3.connect(
-            os.environ.get('DATABASE_URL') or 'sqlite:///' + os.path.join(basedir, 'data.sqlite'),
-            detect_types=sqlite3.PARSE_DECLTYPES
-        )
-        g.db.row_factory = sqlite3.Row
+        g.db = psycopg2.connect(os.environ["DATABASE_URL"], sslmode='require')
 
     return g.db
 
@@ -28,9 +24,11 @@ def close_db(e=None):
 
 def init_db():
     db = get_db()
+    cursor = db.cursor()
 
     with current_app.open_resource('schema.sql') as f:
-        db.executescript(f.read().decode('utf8'))
+        cursor.execute(f.read().decode('utf8'))
+
 
     # add wanted notices
     url="https://www.dofus.com/fr/mmorpg/encyclopedie/monstres?monster_category[]=32&monster_category[]=156&monster_category[]=127&monster_category[]=90"
@@ -42,9 +40,9 @@ def init_db():
        nameFr = elem.find("a").getText()
        img = elem.find("img")["src"]
 
-       db.execute(
+       cursor.execute(
             'INSERT INTO monster (nameFr, img, zoneId, monsterType)'
-            ' VALUES (?, ?, ?, ?)',
+            ' VALUES (%s, %s, %s, %s)',
             (nameFr, img, -1, 2)
        )
        db.commit()
@@ -55,9 +53,9 @@ def init_db():
 
     # add cania bandits
     for name in ["Eratz le revendicateur", "Nomekop le Crapoteur", "Edasse le Trouble Fête"]:
-        db.execute(
+        cursor.execute(
            'INSERT INTO monster (nameFr, img, zoneId, monsterType)'
-           ' VALUES (?, ?, ?, ?)',
+           ' VALUES (%s, %s, %s, %s)',
            (name, "", -1, 3)
         )
         db.commit()
@@ -75,9 +73,9 @@ def init_db():
             nameFr = elem.find("a").getText()
             img = elem.find("img")["src"]
 
-            db.execute(
+            cursor.execute(
                 'INSERT INTO monster (nameFr, img, zoneId, monsterType)'
-                ' VALUES (?, ?, ?, ?)',
+                ' VALUES (%s, %s, %s, %s)',
                 (nameFr, img, -1, 1)
             )
             db.commit()
