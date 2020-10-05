@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 def get_db():
     if 'db' not in g:
         g.db = sqlite3.connect(
-            current_app.config['DATABASE'],
+            os.environ.get('DATABASE_URL') or 'sqlite:///' + os.path.join(basedir, 'data.sqlite'),
             detect_types=sqlite3.PARSE_DECLTYPES
         )
         g.db.row_factory = sqlite3.Row
