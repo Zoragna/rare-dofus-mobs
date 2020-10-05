@@ -1,6 +1,7 @@
 venv/
 
 *.pyc
+*.swp
 __pycache__/
 
 config.sh
