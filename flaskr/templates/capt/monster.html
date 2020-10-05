@@ -5,7 +5,6 @@
 {% endblock %}
 
 {% block content %}
-  <h1>Last captures</h1>
 {% if g.user %}
 <button class="open-button" onclick="openForm()">Register capture</button>
 <div class="form-popup" id="myForm">
@@ -51,6 +50,8 @@
 </div>
 
 {% endif %}
+
+  <h1>Last captures of {{ nameFr }}</h1>
   <table style="width:100%">
   <tr>
     <th>Monster</th>
@@ -61,7 +62,7 @@
   </tr>
   {% for capture in captures %}
     <tr>
-      <td><a href="monster/{{ capture["id"] }}">{{ capture["monster"] }}</a></td>
+      <td>{{ capture["monster"] }}</td>
       <td>{{ capture["hunter"] }}</td>
       <td>{{ capture["time"] }}</td>
       <td> <a href="{{ capture["proof"] }}" target="_blank">Capture</a> </td>
@@ -75,53 +76,6 @@
       </td>
     </tr>
   {% endfor %}
-  </table>
-
-  <h1>Search</h1>
-
-  Work In Progress
-  
-  <h1>Bestiary</h1>
-
-  <h2>Wanted Notices</h2>
-  <table>
-    <tr>
-      <td></td>
-      <td>Last capture</td>
-    </tr>
-{% for notice in notices %}
-    <tr>
-      <td><a href="/monster/{{ notice["id"] }}">{{ notice["nameFr"] }}</a></td>
-      <td>{{ notice["last capture"] }}</td>
-    </tr>
-{% endfor %}
-  </table>
-  <h2>Cania Bandits</h2>
-  <table>
-    <tr>
-      <td></td>
-      <td>Last capture</td>
-    </tr>
-{% for bandit in bandits %}
-    <tr>
-      <td><a href="/monster/{{ bandit["id"] }}">{{ bandit["nameFr"] }}</a></td>
-      <td>{{ bandit["last capture"] }}</td>
-    </tr>
-{% endfor %}
-  </table>
-
-  <h2>Archimonsters</h2>
-  <table>
-    <tr>
-      <td></td>
-      <td>Last capture</td>
-    </tr>
-{% for archi in archimonsters %}
-    <tr>
-      <td><a href="/monster/{{ archi["id"] }}">{{ archi["nameFr"] }}</a></td>
-      <td>{{ archi["last capture"] }}</td>
-    </tr>
-{% endfor %}
   </table>
 
 {% endblock %}

@@ -109,12 +109,10 @@ def assess_capture(c_id=None):
         value = 1
     elif request.json['value'] == "-":
         value = -1
-    print(request.json, "value=", value) 
     cursor.execute('SELECT id,value FROM captureNote'
                             ' WHERE captureId=%s AND userId=%s', (c_id,g.user["id"]))
     note = cursor.fetchone()
     if not note is None and note[1]*value >= 0 :
-        print("note value",note[1])
         data = {'message': 'User already assessed this capture.', 'code': 'FAILURE'}
         return make_response(jsonify(data), 400)
 
@@ -141,6 +139,16 @@ def assess_capture(c_id=None):
             'message': 'Assessed', 'code': 'SUCCESS'}
     return make_response(jsonify(data), 200)
 
+def get_monster(m_id, cursor):
+    cursor.execute(
+        'SELECT id, nameFr'
+        ' FROM monster'
+        ' WHERE id = %s',
+        (m_id,)
+    )
+    return cursor.fetchone()
+
+
 @bp.route('/capture', methods=("POST",))
 @login_required
 def create_capture():
@@ -153,13 +161,7 @@ def create_capture():
     capture_date = datetime.strptime(date+" "+time, "%Y-%m-%d %H:%M")
 
     cursor = get_db().cursor()
-    cursor.execute(
-        'SELECT id'
-        ' FROM monster'
-        ' WHERE id = %s',
-        (m_id,)
-    )
-    monster = cursor.fetchone()
+    monster = get_monster(m_id, cursor)
 
     now = datetime.now()
 
@@ -187,3 +189,49 @@ def create_capture():
         data = {'message': 'Created', 'code': 'SUCCESS'}
         return make_response(jsonify(data), 200)
 
+@bp.route('/monster/<m_id>')
+@login_required
+def track_monster(m_id=None):
+    if m_id is None:
+        data = {'message': 'No ID provided', 'code': 'FAILURE'}
+        return make_response(jsonify(data), 403)
+    db = get_db()
+    cursor = db.cursor() 
+    monster = get_monster(m_id, cursor)
+    if monster is None:
+        data = {'message': 'No monster has this id.', 'code': 'FAILURE'}
+        return make_response(jsonify(data), 404)
+
+    cursor = get_db().cursor()
+    cursor.execute(
+        'SELECT id, monsterId, captured, userId, proof'
+        ' FROM capture WHERE monsterId=%s'
+        ' ORDER BY captured DESC', (m_id,)
+    )
+    capt_db = cursor.fetchall()
+    captures = []
+    for capt in capt_db:
+        c_id = capt[0]
+        u_id = capt[3]
+        cursor.execute('SELECT id, username FROM account'
+                       ' WHERE id=%s', (u_id,))
+        user = cursor.fetchone()
+        cursor.execute('SELECT * FROM captureNote'
+                       ' WHERE captureId=%s AND value>0', (c_id,))
+        thumbs_up = cursor.fetchall()
+        cursor.execute('SELECT * FROM captureNote'
+                       ' WHERE captureId=%s AND value<0', (c_id,))
+        thumbs_down = cursor.fetchall()
+        captures.append( {"id":capt[0],
+                          "monster":monster[1],
+                          "hunter":user[1],
+                          "proof":capt[2],
+                          "time":capt[2].strftime("%d %b %Y %Hh%M"),
+                          "+":len(thumbs_up),
+                          "-":len(thumbs_down)
+        } )
+
+    return render_template('capt/monster.html', 
+        captures=captures, nameFr=monster[1],
+        bandits=get_bandits(), notices=get_notices(), archimonsters=get_archimonsters()
+    )
