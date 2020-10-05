@@ -2,7 +2,7 @@ import sqlite3
 import click
 import requests
 import time
-
+import os
 
 from flask import current_app, g
 from flask.cli import with_appcontext
