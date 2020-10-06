@@ -1,15 +1,17 @@
 import functools
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, jsonify, make_response
 )
+from flask_babel import gettext
 
 from flaskr.db import get_db
 from flaskr.auth import login_required
 
 bp = Blueprint('capt', __name__)
+
 
 def get_captures_today():
     cursor = get_db().cursor()
@@ -67,18 +69,21 @@ def get_monsters(m_type=0):
     monsters = []
     for mons in mons_db:
         cursor.execute(
-            'SELECT id, captured '
-            'FROM capture WHERE monsterId=%s', (mons[0],)
+            'SELECT id, captured'
+            ' FROM capture WHERE monsterId=%s', (mons[0],)
         )
         m = cursor.fetchone()
-        monster = { "nameFr" : mons[1], "id":mons[0]  }
+        monster = { "img":mons[2], "nameFr" : mons[1], "id":mons[0]  }
         if m is None:
             monster["last capture"] = "Never recorded."
         else:
             s = (now-m[1]).total_seconds()
             hours, remainder = divmod(s, 3600)
             minutes, seconds = divmod(remainder, 60)
-            monster["last capture"] = str(hours)+" hours "+str(minutes)+" minutes ago"
+            monster["last capture"] = ""
+            if hours != 0:
+                monster["last capture"] += str(int(hours))+" hours "
+            monster["last capture"] += str(int(minutes))+" minutes ago"
         monsters.append(monster)
     return monsters
 
@@ -87,6 +92,10 @@ def index():
     return render_template('capt/index.html', captures=get_captures_today(), 
         notices=get_notices(), bandits=get_bandits(), archimonsters=get_archimonsters())
 
+@bp.route('/useful_links')
+def useful_links():
+    return render_template('capt/useful_links.html')
+
 @bp.route('/capture/<c_id>', methods=("POST",))
 @login_required
 def assess_capture(c_id=None):
@@ -94,16 +103,16 @@ def assess_capture(c_id=None):
     cursor = db.cursor()
     # TODO : try and use abort() instead of those two lines things
     if c_id is None:
-        data = {'message': 'No capture ID provided', 'code': 'FAILURE'}
+        data = {'message': gettext('No capture ID provided'), 'code': 'FAILURE'}
         return make_response(jsonify(data), 400)
     cursor.execute('SELECT id FROM capture WHERE id=%s', (c_id,))
     capture = cursor.fetchone()
     if capture is None:
-        data = {'message': 'Capture ID not in database', 'code': 'FAILURE'}
+        data = {'message': gettext('Capture ID not in database'), 'code': 'FAILURE'}
         return make_response(jsonify(data), 400)
     value = 0
     if request.json is None or 'value' not in request.json:
-        data = {'message': 'Request malformed', 'code': 'FAILURE'}
+        data = {'message': gettext('Request malformed'), 'code': 'FAILURE'}
         return make_response(jsonify(data), 400)
     elif request.json['value'] == "+":
         value = 1
@@ -113,7 +122,7 @@ def assess_capture(c_id=None):
                             ' WHERE captureId=%s AND userId=%s', (c_id,g.user["id"]))
     note = cursor.fetchone()
     if not note is None and note[1]*value >= 0 :
-        data = {'message': 'User already assessed this capture.', 'code': 'FAILURE'}
+        data = {'message': gettext('User already assessed this capture.'), 'code': 'FAILURE'}
         return make_response(jsonify(data), 400)
 
     if note is None :
@@ -141,7 +150,7 @@ def assess_capture(c_id=None):
 
 def get_monster(m_id, cursor):
     cursor.execute(
-        'SELECT id, nameFr'
+        'SELECT id, nameFr, monsterType'
         ' FROM monster'
         ' WHERE id = %s',
         (m_id,)
@@ -164,21 +173,35 @@ def create_capture():
     monster = get_monster(m_id, cursor)
 
     now = datetime.now()
+    cursor = get_db().cursor()
+    cursor.execute(
+        'SELECT id, monsterId, captured, userId, proof'
+        ' FROM capture WHERE monsterId=%s'
+        ' ORDER BY captured DESC', (m_id,)
+    )   
+    your_last_capture = cursor.fetchone()
 
     if monster is None :
-        data = {'message': 'Monster does not exist in the database.', 'code': 'FAILURE'}
-        return make_response(jsonify(data), 400)
-    elif not "https://www.dofus.com/fr/mmorpg/communaute/fincombat/" in proof :
-        data = {'message': 'Proof should come from in-game screenshot', 'code': 'FAILURE'}
-        return make_response(jsonify(data), 400)
+        data = {'message': gettext('Monster does not exist in the database.'), 'code': 'FAILURE'}
+        return make_response(jsonify(data), 404)
+    
+    cursor = get_db().cursor()
+    cursor.execute('SELECT minRes FROM monsterType WHERE Seq=%s', (monster[2],))
+    min_res = timedelta(hours=cursor.fetchone()[0])
+
+    if not "https://www.dofus.com/fr/mmorpg/communaute/fincombat/" in proof :
+        data = {'message': gettext('Proof should come from in-game screenshot'), 'code': 'FAILURE'}
+        return make_response(jsonify(data), 403)
     elif not requests.get(proof).ok :
-        data = {'message': 'Proof page not found.', 'code': 'FAILURE'}
-        return make_response(jsonify(data), 400)
+        data = {'message': gettext('Proof page not found.'), 'code': 'FAILURE'}
+        return make_response(jsonify(data), 404)
     elif capture_date > now: 
-        data = {'message': 'Can\'t create in the future', 'code': 'FAILURE'}
-        return make_response(jsonify(data), 400)
+        data = {'message': gettext('Can\'t create in the future'), 'code': 'FAILURE'}
+        return make_response(jsonify(data), 403)
+    elif not your_last_capture is None and your_last_capture[2] + min_res > capture_date:
+        data = {'message': gettext('You coudln\'t have captured this monster.'), 'code': 'FAILURE'}
+        return make_response(jsonify(data), 403)
     else:
-    # TODO : test if monster could have been captured
         db = get_db()
         db.cursor().execute(
            'INSERT INTO capture (monsterId, captured, userId, proof)'
@@ -193,13 +216,13 @@ def create_capture():
 @login_required
 def track_monster(m_id=None):
     if m_id is None:
-        data = {'message': 'No ID provided', 'code': 'FAILURE'}
+        data = {'message': gettext('No ID provided'), 'code': 'FAILURE'}
         return make_response(jsonify(data), 403)
     db = get_db()
     cursor = db.cursor() 
     monster = get_monster(m_id, cursor)
     if monster is None:
-        data = {'message': 'No monster has this id.', 'code': 'FAILURE'}
+        data = {'message': gettext('No monster has this id.'), 'code': 'FAILURE'}
         return make_response(jsonify(data), 404)
 
     cursor = get_db().cursor()

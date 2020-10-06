@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}{{ profile["username"] }}'s profile{% endblock %}</h1>
+  <h1>{% block title %}{{ _('%(username)%\'s profile', username=profile["username"]) }}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}

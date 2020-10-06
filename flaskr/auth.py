@@ -1,7 +1,7 @@
 import functools
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Blueprint, flash, g, redirect, render_template, request, session, url_for, make_response
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -116,6 +116,15 @@ def profile(username=None):
         user = cursor.fetchone()
         profile = { "username":user[0], "metamob":user[1] }
         return render_template('auth/a_profile.html', profile=profile)
+
+@bp.route('/lang', methods=('POST',))
+@login_required
+def change_locale():
+    db = get_db()
+    cursor = db.cursor()
+    print(request.form)
+    session["locale"] = request.form["language"]
+    return make_response('{}', 200)
 
 @bp.route('/logout')
 def logout():

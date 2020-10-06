@@ -1,0 +1,188 @@
+# French translations for PROJECT.
+# Copyright (C) 2020 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2020-10-06 21:26+0200\n"
+"PO-Revision-Date: 2020-10-06 21:26+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.8.0\n"
+
+#: templates/base.html:6 templates/capt/useful_links.html:4
+msgid "Useful Links"
+msgstr "Liens Utiles"
+
+#: templates/base.html:10
+msgid "Log Out"
+msgstr "Déconnexion"
+
+#: templates/auth/register.html:4 templates/base.html:12
+msgid "Register"
+msgstr "Créer un compte"
+
+#: templates/auth/login.html:4 templates/base.html:13
+msgid "Log In"
+msgstr "Se connecter"
+
+#: templates/base.html:19
+msgid "Register capture"
+msgstr "Enregistrer une capture"
+
+#: templates/base.html:23
+msgid "Register your last capture"
+msgstr "Enregistez  votre dernière capture."
+
+#: templates/base.html:25 templates/capt/index.html:11
+#: templates/capt/monster.html:11
+msgid "Monster"
+msgstr "Monstre"
+
+#: templates/base.html:28 templates/capt/index.html:57
+msgid "Cania Bandits"
+msgstr "Bandits de Cania"
+
+#: templates/base.html:33 templates/capt/index.html:41
+msgid "Wanted Notices"
+msgstr "Avis de recherche"
+
+#: templates/base.html:38 templates/capt/index.html:73
+msgid "Archimonsters"
+msgstr "Archimonstres"
+
+#: templates/base.html:44 templates/capt/index.html:13
+#: templates/capt/monster.html:13
+msgid "Date"
+msgstr "Date"
+
+#: templates/base.html:47
+msgid "Time"
+msgstr "Heure"
+
+#: templates/base.html:50 templates/capt/index.html:14
+#: templates/capt/monster.html:14
+msgid "Proof"
+msgstr "Preuve"
+
+#: templates/base.html:51
+msgid ""
+"Valid proofs are In-Game Screenshots (<kbd>F2</kbd>). Tutorial for "
+"sharing can be found <a href=\"https://www.dofus.com/fr/forum/1673"
+"-propos-site-forum-dofus/2189162-tutoriel-prendre-partager-capture-"
+"ecran\" target=\"_blank\">here</a>"
+msgstr "Une preuve valide est une capture d'écran en jeu (<kbd>F2</kbd>). Un tutoriel pour "
+"la partager peut être trouvé <a href=\"https://www.dofus.com/fr/forum/1673"
+"-propos-site-forum-dofus/2189162-tutoriel-prendre-partager-capture-"
+"ecran\" target=\"_blank\">ici</a>"
+
+
+#: templates/base.html:55
+msgid "Submit"
+msgstr "Envoyer"
+
+#: templates/base.html:56
+msgid "Close"
+msgstr "Fermer"
+
+#: templates/base.html:64
+msgid ""
+"To register a capture or track a specific mob, you have to <a "
+"href=\"auth/login\">log in</a>."
+msgstr "Pour enregistrer une cpature ou suivre la traque d'un monstre spécifique, "
+"vous devez <a href=\"auth/login\">vous connecter</a>."
+
+#: templates/base.html:65
+msgid "Guest users only have access to the last captures."
+msgstr "Les utilisateurs sans compte n'ont accès qu'aux dernières captures."
+
+#: templates/auth/a_profile.html:4
+#, python-format
+msgid "%(username)%'s profile"
+msgstr "Profil de %(username)%s"
+
+#: templates/auth/login.html:9
+msgid "Username"
+msgstr "Nom d'utilisateur"
+
+#: templates/auth/login.html:11
+msgid "Password"
+msgstr "Mot de passe"
+
+#: templates/auth/my_profile.html:4
+msgid "Profile"
+msgstr "Profil"
+
+#: templates/auth/register.html:9
+msgid "Username (6-29 char.)"
+msgstr "Nom d'utilisateur (6-29 carac.)"
+
+#: templates/auth/register.html:11
+msgid "Password (6-99 char.)"
+msgstr "Mot de passe (6-99 carac.)"
+
+#: templates/auth/register.html:13
+msgid "Metamob (optional)"
+msgstr "Metamob (optionel)"
+
+#: templates/capt/index.html:4
+msgid "Main Page"
+msgstr "Page d'accueil"
+
+#: templates/capt/index.html:8
+msgid "5 Last captures"
+msgstr "5 dernières captures"
+
+#: templates/capt/index.html:12 templates/capt/monster.html:12
+msgid "Hunter"
+msgstr "Chasseur"
+
+#: templates/capt/index.html:22 templates/capt/monster.html:22
+msgid "Capture"
+msgstr "Capture"
+
+#: templates/capt/index.html:35
+msgid "Search"
+msgstr "Recherche"
+
+#: templates/capt/index.html:37
+msgid "Work In Progress"
+msgstr "Travaux En Cours"
+
+#: templates/capt/index.html:39
+msgid "Bestiary"
+msgstr "Bestiaire"
+
+#: templates/capt/index.html:46 templates/capt/index.html:62
+#: templates/capt/index.html:78
+msgid "Last capture"
+msgstr "Dernière capture"
+
+#: templates/capt/monster.html:4
+msgid "Last Captures of %(name)s"
+msgstr "Dernières Captures de %(name)s"
+
+#: templates/capt/useful_links.html:9
+msgid "Metamob"
+msgstr "Metamob"
+
+#: templates/capt/useful_links.html:9
+msgid "lien"
+msgstr "lien"
+
+#: templates/capt/useful_links.html:10
+msgid "Ocra Dofus Ilyzaelle Discord"
+msgstr "Discord quête Ocre Ilyzaelle"
+
+#: templates/capt/useful_links.html:10
+msgid "invitation"
+msgstr "invitation"
+

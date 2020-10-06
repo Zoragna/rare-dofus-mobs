@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Register{% endblock %}</h1>
+  <h1>{% block title %}{{ _('Register') }}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
   <form method="post">
-    <label for="username">Username (6-29 char.)</label>
+    <label for="username">{{ _('Username (6-29 char.)') }}</label>
     <input name="username" id="username" required>
-    <label for="password">Password (6-99 char.)</label>
+    <label for="password">{{ _('Password (6-99 char.)') }}</label>
     <input type="password" name="password" id="password" required>
-    <label for="password">Metamob (optional)</label>
+    <label for="password">{{ _('Metamob (optional)') }}</label>
     <input type="string" name="metamob" id="metamob">
     <input type="submit" value="Register">
   </form>

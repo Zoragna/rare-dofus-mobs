@@ -1,63 +1,17 @@
 {% extends 'base.html' %}
 
 {% block header %}
-  <h1>{% block title %}Main Page{% endblock %}</h1>
+  <h1>{% block title %}{{ _('Last Captures of %(name)s', name=nameFr) }}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
-{% if g.user %}
-<button class="open-button" onclick="openForm()">Register capture</button>
-<div class="form-popup" id="myForm">
 
-  <form action="/capture" method="post" class="form-container" id="new-capture-form">
-    <h1>Register your last capture</h1>
-
-    <label><b>Monster</b></label>
-
-  <select id="monster" name="monsterId">
-    <optgroup label="Cania Bandits">
-{% for bandit in bandits %}
-      <option value="{{ bandit["id"] }}">{{ bandit["nameFr"] }}</option>
-{% endfor %}
-    </optgroup>
-    <optgroup label="Wanted Notices">
-{% for notice in notices %}
-      <option value="{{ notice["id"] }}">{{ notice["nameFr"] }}</option>
-{% endfor %}
-    </optgroup>
-    <optgroup label="Archimonsters">
-{% for arch in archimonsters %}
-      <option value="{{ arch["id"] }}">{{ arch["nameFr"] }}</option>
-{% endfor %}
-    </optgroup>
-  </select>
-
-    <label><b>Date</b></label>
-    <input type="date" name="date" required>
-
-    <label><b>Time</b></label>
-    <input type="time" name="time" required>
-
-    <label><b>Proof</b></label>
-    <input type="url" placeholder="https://www.dofus.com/fr/mmorpg/communaute/fincombat/... " pattern="https://www.dofus.com/fr/mmorpg/communaute/fincombat/.*" name="proof">
-    
-    <button type="submit" class="btn" id="submit">Submit</button>
-    <button type="button" class="btn cancel" onclick="closeForm()">Close</button>
-
-    <span id="result"></span>
-  </form>
-
-</div>
-
-{% endif %}
-
-  <h1>Last captures of {{ nameFr }}</h1>
   <table style="width:100%">
   <tr>
-    <th>Monster</th>
-    <th>Hunter</th>
-    <th>Date</th>
-    <th>Proof</th>
+    <th>{{ _('Monster') }}</th>
+    <th>{{ _('Hunter') }}</th>
+    <th>{{ _('Date') }}</th>
+    <th>{{ _('Proof') }}</th>
     <th></th>
   </tr>
   {% for capture in captures %}
@@ -65,7 +19,7 @@
       <td>{{ capture["monster"] }}</td>
       <td>{{ capture["hunter"] }}</td>
       <td>{{ capture["time"] }}</td>
-      <td> <a href="{{ capture["proof"] }}" target="_blank">Capture</a> </td>
+      <td> <a href="{{ capture["proof"] }}" target="_blank">{{ _('Capture') }}</a> </td>
       <td>
         <div style="color: #22790D" class="valid-up"><b>{{ capture["+"] }}</b></div>
 	{% if g.user %}
