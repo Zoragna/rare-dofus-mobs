@@ -258,3 +258,4 @@ def track_monster(m_id=None):
         captures=captures, nameFr=monster[1],
         bandits=get_bandits(), notices=get_notices(), archimonsters=get_archimonsters()
     )
+

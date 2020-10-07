@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, g, request, session
+from flask import Flask, g, request, session, send_from_directory
 from flask_babel import Babel
 
 
@@ -67,6 +67,11 @@ def create_app(test_config=None):
         return send_from_directory(os.path.join(app.root_path, 'static'),
                                    'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
+    # TODO : write this function
+    @app.context_processor
+    def inject_communities():
+        communities = []
+        return dict(communities=communities)
 
     return app
 

@@ -29,6 +29,8 @@ def init_db():
     with current_app.open_resource('schema.sql') as f:
         cursor.execute(f.read().decode('utf8'))
 
+    # TODO : scrap this page 
+    # https://www.dofus.com/fr/mmorpg/communaute/serveurs#jt_list
 
     # add wanted notices
     url="https://www.dofus.com/fr/mmorpg/encyclopedie/monstres?monster_category[]=32&monster_category[]=156&monster_category[]=127&monster_category[]=90"

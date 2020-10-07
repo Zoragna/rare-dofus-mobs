@@ -23,6 +23,19 @@
   </select>
 </form>
 
+<form id="serv-form" action="/auth/lang" method="post" >
+  <select name="serv" onchange="selectChange(this.value);">
+{% for community in communities %}
+    <optgroup label="{{ community["flag"] }}">
+{% for server in community["servers"] %}
+      <option value="{{ server["id"] }}">{{ server["name"] }}</option>
+{% endfor %}
+    </optgroup>
+{% endfor %}
+  </select>
+</form>
+
+
   <button class="open-button" onclick="openForm()">{{ _('Register capture') }}</button>
   <div class="form-popup" id="myForm">
 

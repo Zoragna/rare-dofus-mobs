@@ -1,4 +1,5 @@
 DROP TABLE IF EXISTS account CASCADE;
+DROP TABLE IF EXISTS serverType CASCADE;
 DROP TABLE IF EXISTS capture CASCADE;
 DROP TABLE IF EXISTS captureNote CASCADE;
 DROP TABLE IF EXISTS monster CASCADE;
@@ -9,7 +10,15 @@ CREATE TABLE account (
   username 	TEXT 	UNIQUE NOT NULL,
   password 	TEXT 	NOT NULL,
   metamob 	TEXT	DEFAULT '',
-  admin 	BOOLEAN NOT NULL DEFAULT False
+  admin 	BOOLEAN NOT NULL DEFAULT False,
+  locale	TEXT	NOT NULL DEFAULT 'fr',
+  serverId	INTEGER	NOT NULL 
+);
+
+CREATE TABLE server (
+  name		TEXT	PRIMARY KEY,
+  id		SERIAL,
+  lang		TEXT
 );
 
 CREATE TABLE monster (
@@ -37,6 +46,7 @@ CREATE TABLE capture (
   captured      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   userId        INTEGER         NOT NULL,
   proof         TEXT            DEFAULT '',
+  serverId	INTEGER		NOT NULL,
   FOREIGN KEY   (monsterId)     REFERENCES      monster(id),
   FOREIGN KEY   (userId)        REFERENCES      account(id)
 );
