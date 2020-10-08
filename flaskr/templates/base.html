@@ -5,7 +5,7 @@
   <h1><a href="{{ url_for('index') }}">Rare Dofus Mobs</a></h1>
   <h1><a href="{{ url_for('capt.useful_links') }}">{{ _('Useful Links') }}</a></h1>
   <ul>
-    {% if g.user %}
+    {% if not g.user['guest'] %}
       <li><span>{{ g.user['username'] }}</span>
       <li><a href="{{ url_for('auth.logout') }}">{{ _('Log Out') }}</a>
     {% else %}
@@ -15,16 +15,16 @@
   </ul>
 </nav>
 <section class="content">
-{% if g.user %}
-<form id="lang-form" action="/auth/lang" method="post" >
-  <select name="language" onchange="selectChange(this.value);">
+
+<form id="lang-form" action="/auth/lang" method="post">
+  <select name="language" onChange="console.log('A');$('#lang-form').trigger('submit');">
     <option value="fr">🇫🇷</option>
     <option value="en">🇬🇧</option>
   </select>
 </form>
 
-<form id="serv-form" action="/auth/lang" method="post" >
-  <select name="serv" onchange="selectChange(this.value);">
+<form id="serv-form" action="/auth/serv"  method="post">
+  <select name="server" onChange="console.log('B');$('#serv-form').trigger('submit');">
 {% for community in communities %}
     <optgroup label="{{ community["flag"] }}">
 {% for server in community["servers"] %}
@@ -35,7 +35,7 @@
   </select>
 </form>
 
-
+{% if not g.user['guest'] %}
   <button class="open-button" onclick="openForm()">{{ _('Register capture') }}</button>
   <div class="form-popup" id="myForm">
 
@@ -164,12 +164,27 @@ frm.submit(function (e) {
             },
        });
 });
-
-function selectChange(val) {
-    console.log(val);
-    frm.submit();
-}
 </script>
+
+<script>
+var frm1 = $('#serv-form');
+frm1.submit(function (e) {
+        e.preventDefault();
+        $.ajax({
+            type: frm1.attr('method'),
+            url: frm1.attr('action'),
+            data: frm1.serialize(),
+            success: function (data) {
+                console.log(data);
+                location.reload();  
+           },
+             error: function (data) {
+                console.log(data);
+            },
+       });
+});
+</script>
+
 
 {% endblock %}
 

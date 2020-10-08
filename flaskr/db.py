@@ -29,9 +29,31 @@ def init_db():
     with current_app.open_resource('schema.sql') as f:
         cursor.execute(f.read().decode('utf8'))
 
-    # TODO : scrap this page 
-    # https://www.dofus.com/fr/mmorpg/communaute/serveurs#jt_list
-
+    # populate servers
+    #    url="https://www.dofus.com/fr/mmorpg/communaute/serveurs#jt_list"
+    print('Servers')
+    servers = {}
+    for (i, commu) in [(0,"fr"),(2,"int"),(4,"es"),(6, "port")]:
+        url = f"https://www.dofus.com/fr/mmorpg/communaute/serveurs?server_community%5B%5D={i}#jt_list"
+        page = requests.get(url)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        results = soup.find("table").find("tbody").find_all("tr")
+        for elem in results:
+            name = elem.find("span", {"class":None}).next_element
+            servers[name] = { "lang" : commu }
+        time.sleep(3)
+    url="https://www.dofus.com/fr/mmorpg/communaute/serveurs?server_access%5B%5D=1&server_access%5B%5D=0#jt_list"
+    page = requests.get(url)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    results = soup.find("table").find("tbody").find_all("tr")
+    for elem in results:
+        name = elem.find("span", {"class":None}).next_element
+        if name not in servers :
+            servers[name] = { "lang" : None }
+    for name in servers:
+        cursor.execute('INSERT INTO server (name, lang) VALUES (%s, %s)', (name, servers[name]["lang"]))
+        db.commit()
+    print(servers)
     # add wanted notices
     url="https://www.dofus.com/fr/mmorpg/encyclopedie/monstres?monster_category[]=32&monster_category[]=156&monster_category[]=127&monster_category[]=90"
     print('Scraping notices')

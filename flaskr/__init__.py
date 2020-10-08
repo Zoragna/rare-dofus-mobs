@@ -2,7 +2,7 @@ import os
 
 from flask import Flask, g, request, session, send_from_directory
 from flask_babel import Babel
-
+from . import db
 
 def create_app(test_config=None):
     # create and configure the app
@@ -27,7 +27,6 @@ def create_app(test_config=None):
     except OSError:
         pass
 
-    from . import db
     db.init_app(app)
 
     from . import auth
@@ -44,11 +43,18 @@ def create_app(test_config=None):
         translations = [str(translation) for translation in babel.list_translations()]
         # if a user is logged in, use the locale from the user settings
         user = g.user
-        print("User", user)
-        if user is not None and "locale" in user:
-            print("User locale :", user.locale)
-            return user.locale
         s_locale = session.get("locale")
+        if user is not None: 
+            if "locale" in user:
+                print("User locale :", user.locale)
+                return user.locale
+            elif "id" in user:
+                cursor = db.get_db().cursor()
+                cursor.execute('SELECT id, locale'
+                             ' FROM account WHERE id=%s', (user["id"],))
+                u_db = cursor.fetchone()
+                print("Stored locale :", u_db[1])
+                return u_db[1]
         if s_locale is not None:
             print("Session locale:", s_locale)
             return s_locale
@@ -67,10 +73,25 @@ def create_app(test_config=None):
         return send_from_directory(os.path.join(app.root_path, 'static'),
                                    'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-    # TODO : write this function
     @app.context_processor
     def inject_communities():
+        tmp = {}
+        cursor = db.get_db().cursor()
+        cursor.execute('SELECT id, name, lang FROM server')
+        servers = cursor.fetchall()
+        for server in servers :
+            s_id = server[0]
+            name = server[1]
+            lang = server[2]
+            if lang not in tmp :
+                tmp[lang] = {}
+            if "servers" not in tmp[lang] :
+                tmp[lang]["servers"] = []
+            tmp[lang]["servers"].append({ "id" : s_id, "name" : name})
         communities = []
+        for lang in tmp:
+            communities.append( { "flag":lang, "servers":tmp[lang]["servers"] } )
+        print(communities)
         return dict(communities=communities)
 
     return app

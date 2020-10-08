@@ -5,13 +5,22 @@
 {% endblock %}
 
 {% block content %}
-  <form method="post">
+  <form method="post" id="user-form">
     <label for="username">{{ _('Username (6-29 char.)') }}</label>
     <input name="username" id="username" required>
     <label for="password">{{ _('Password (6-99 char.)') }}</label>
     <input type="password" name="password" id="password" required>
     <label for="password">{{ _('Metamob (optional)') }}</label>
     <input type="string" name="metamob" id="metamob">
+    <select name="serverId" required>
+{% for community in communities %}
+      <optgroup label="{{ community["flag"] }}">
+{% for server in community['servers'] %}
+        <option value="{{server["id"]}}">{{server["name"]}}</option>
+{% endfor %}
+      </optgroup>
+{% endfor %}
+    </select>
     <input type="submit" value="Register">
   </form>
 {% endblock %}

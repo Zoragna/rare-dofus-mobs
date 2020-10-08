@@ -17,8 +17,8 @@ def get_captures_today():
     cursor = get_db().cursor()
     cursor.execute(
         'SELECT id, monsterId, captured, userId, proof'
-        ' FROM capture ORDER BY captured DESC'
-        ' LIMIT 5'
+        ' FROM capture WHERE serverId=%s ORDER BY captured DESC'
+        ' LIMIT 5', (g.user['serverId'], )
     )
     capt_db = cursor.fetchall()
     captures = []
@@ -70,7 +70,7 @@ def get_monsters(m_type=0):
     for mons in mons_db:
         cursor.execute(
             'SELECT id, captured'
-            ' FROM capture WHERE monsterId=%s', (mons[0],)
+            ' FROM capture WHERE monsterId=%s AND serverId=%s', (mons[0],g.user['serverId'])
         )
         m = cursor.fetchone()
         monster = { "img":mons[2], "nameFr" : mons[1], "id":mons[0]  }
@@ -204,9 +204,9 @@ def create_capture():
     else:
         db = get_db()
         db.cursor().execute(
-           'INSERT INTO capture (monsterId, captured, userId, proof)'
-           ' VALUES (%s, %s, %s, %s)',
-           (monster[0], capture_date, g.user['id'], proof)
+           'INSERT INTO capture (monsterId, captured, userId, proof,serverId)'
+           ' VALUES (%s, %s, %s, %s, %s)',
+           (monster[0], capture_date, g.user['id'], proof, g.user['serverId'])
         )
         db.commit()
         data = {'message': 'Created', 'code': 'SUCCESS'}
@@ -228,8 +228,8 @@ def track_monster(m_id=None):
     cursor = get_db().cursor()
     cursor.execute(
         'SELECT id, monsterId, captured, userId, proof'
-        ' FROM capture WHERE monsterId=%s'
-        ' ORDER BY captured DESC', (m_id,)
+        ' FROM capture WHERE monsterId=%s AND serverId=%s'
+        ' ORDER BY captured DESC', (m_id,g.user['serverId'])
     )
     capt_db = cursor.fetchall()
     captures = []
