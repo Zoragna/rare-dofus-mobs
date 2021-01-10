@@ -11,7 +11,7 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=os.environ["SECRET_FLASK_KEY"],
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
-        SESSION_COOKIE_DOMAIN="127.0.0.1",
+#        SESSION_COOKIE_DOMAIN="127.0.0.1",
         BABEL_DEFAULT_LOCALE="en"
     )
 
