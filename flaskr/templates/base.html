@@ -28,7 +28,7 @@
 {% for community in communities %}
     <optgroup label="{{ community["flag"] }}">
 {% for server in community["servers"] %}
-      <option value="{{ server["id"] }}">{{ server["name"] }}</option>
+      <option value="{{ server["id"] }}" {% if g.user['serverId'] == server["id"] %}selected="selected"{% endif %}>{{ server["name"] }}</option>
 {% endfor %}
     </optgroup>
 {% endfor %}

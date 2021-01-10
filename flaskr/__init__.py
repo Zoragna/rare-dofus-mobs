@@ -11,6 +11,7 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY=os.environ["SECRET_FLASK_KEY"],
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
+        SESSION_COOKIE_DOMAIN="127.0.0.1",
         BABEL_DEFAULT_LOCALE="en"
     )
 
@@ -35,6 +36,7 @@ def create_app(test_config=None):
     from . import capt
     app.register_blueprint(capt.bp)
     app.add_url_rule('/', endpoint='index')
+    print("[DEBUG __init]", "App Secret_key", app.secret_key)
 
     babel = Babel(app)
     
@@ -46,8 +48,8 @@ def create_app(test_config=None):
         s_locale = session.get("locale")
         if user is not None: 
             if "locale" in user:
-                print("User locale :", user.locale)
-                return user.locale
+                print("User locale :", user["locale"])
+                return user["locale"]
             elif "id" in user:
                 cursor = db.get_db().cursor()
                 cursor.execute('SELECT id, locale'
@@ -73,6 +75,13 @@ def create_app(test_config=None):
         return send_from_directory(os.path.join(app.root_path, 'static'),
                                    'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
+    @app.before_request
+    def make_session_permanent():
+        print("[DEBUG-__init__]","make session permanent")
+        session.permanent = True
+        session.modified = True
+
+
     @app.context_processor
     def inject_communities():
         tmp = {}
@@ -91,7 +100,7 @@ def create_app(test_config=None):
         communities = []
         for lang in tmp:
             communities.append( { "flag":lang, "servers":tmp[lang]["servers"] } )
-        print(communities)
+#        print(communities)
         return dict(communities=communities)
 
     return app

@@ -22,6 +22,6 @@ msgid "Main Page"
 msgstr ""
 
 #: flaskr/templates/capt/index.html:8
-msgid "5 Last captures"
+msgid "5 Last captures from"
 msgstr ""
 

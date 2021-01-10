@@ -138,8 +138,8 @@ msgid "Main Page"
 msgstr "Page d'accueil"
 
 #: templates/capt/index.html:8
-msgid "5 Last captures"
-msgstr "5 dernières captures"
+msgid "5 Last captures from"
+msgstr "5 dernières captures sur"
 
 #: templates/capt/index.html:12 templates/capt/monster.html:12
 msgid "Hunter"

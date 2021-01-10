@@ -22,20 +22,40 @@ def login_required(view):
 
     return wrapped_view
 
+def get_server_name(cursor, s_id):
+    cursor.execute('SELECT id,name FROM server WHERE id=%s', (s_id,))
+    server = cursor.fetchone()
+    return server[1]
+
 @bp.before_app_request
-def load_logged_in_user():
+def load_current_session():
+    print("[DEBUG]","load logged in user")
+    print("[DEBUG]","session ?", session)
+    print("[DEBUG]","session type ?", type(session))
+    print("[DEBUG]","new session ?", session.new)
+    if "user" in g :
+        print("g.user ?", g.user)
+    else:
+        print(g, "user" in g)
+
+    server_id = session.get('server_id')
     user_id = session.get('user_id')
+    cursor = get_db().cursor()
 
     if user_id is None:
-        g.user = { "serverId" : session.get('server_id'), "guest":True }
+        g.user = { "serverId" : session.get('server_id',3), "guest":True,
+                   "locale": session.get("locale","fr") }
     else:
-        cursor = get_db().cursor()
         cursor.execute(
             'SELECT id, username, metamob, serverId FROM account WHERE id = %s', (user_id,)
         )
         user = cursor.fetchone()
         g.user = { "id" : user[0], "username" : user[1], 
-                   "metamob" : user[2], "serverId" : user[3], "guest":False }
+	                "metamob" : user[2], "serverId" : user[3],
+			"guest":False }
+    g.user["serverName"] = get_server_name(cursor, g.user["serverId"])
+    print("Current session/context")
+    print(g.user)
 
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
@@ -130,12 +150,13 @@ def profile(username=None):
         return render_template('auth/a_profile.html', profile=profile)
 
 @bp.route('/serv', methods=('POST',))
-@login_required
 def change_server():
-    print("change serv", request.form)
+    print("[DEBUG]","change serv", request.form)
     if g.user["guest"]:
         g.user["serverId"] = request.form["server"]
-        session.server_id = request.form["server"]
+        g.user["serverName"] = get_server_name(get_db().cursor(),request.form["server"])
+        session["server_id"] = request.form["server"]
+        session.modified = True
     else:
         db = get_db()
         cursor = db.cursor()
@@ -151,11 +172,11 @@ def change_server():
 
 
 @bp.route('/lang', methods=('POST',))
-@login_required
 def change_locale():
-    print("language", request.form)
+    print("[DEBUG auth] modify language", request.form)
     if g.user["guest"]:
        session["locale"] = request.form["language"]
+       session.modified = True
     else:
        db = get_db()
        cursor = db.cursor()
